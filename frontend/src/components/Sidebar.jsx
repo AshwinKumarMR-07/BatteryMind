@@ -8,19 +8,28 @@ import {
   UploadCloud, 
   Settings, 
   ShieldCheck,
-  Zap
+  Users,
+  Zap,
+  Radio
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab, alertCount = 0 }) {
+export default function Sidebar({ activeTab, setActiveTab, alertCount = 0, user, onLogout }) {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'monitoring', label: 'Battery Monitoring', icon: Activity },
+    { id: 'devices', label: 'Device Management', icon: Radio },
     { id: 'details', label: 'Battery Details', icon: BatteryCharging },
     { id: 'ai-analysis', label: 'AI Analysis', icon: Cpu, badge: 'ML v2' },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle, count: alertCount },
     { id: 'data-upload', label: 'Data Upload', icon: UploadCloud },
     { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'users', label: 'User Management', icon: Users },
   ];
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.id === 'settings' || item.id === 'data-upload') return user?.role !== 'Viewer';
+    if (item.id === 'users') return user?.role === 'Admin';
+    return true;
+  });
 
   return (
     <aside className="sidebar">
@@ -56,7 +65,7 @@ export default function Sidebar({ activeTab, setActiveTab, alertCount = 0 }) {
 
       {/* Navigation List */}
       <nav style={{ padding: '18px 12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (

@@ -7,6 +7,7 @@ class Battery(Base):
     __tablename__ = "batteries"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     battery_code = Column(String(50), unique=True, index=True, nullable=False)
     vehicle_category = Column(String(50), index=True, nullable=False) # 'Electric scooters', 'Electric bikes', 'Electric cars', 'Electric buses', 'Electric trucks'
     model_name = Column(String(100), nullable=False)
@@ -25,6 +26,8 @@ class Battery(Base):
     predictions = relationship("HealthPrediction", back_populates="battery", cascade="all, delete-orphan")
     anomalies = relationship("AnomalyRecord", back_populates="battery", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="battery", cascade="all, delete-orphan")
+    paired_devices = relationship("Device", back_populates="paired_battery")
+    owner = relationship("User", back_populates="batteries")
 
 class BatteryReading(Base):
     __tablename__ = "battery_readings"
@@ -87,8 +90,53 @@ class UploadedDataset(Base):
     __tablename__ = "uploaded_datasets"
 
     id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     filename = Column(String(255), nullable=False)
     row_count = Column(Integer, default=0)
     status = Column(String(50), default="Processed")
     uploaded_at = Column(DateTime, default=datetime.utcnow)
     summary_notes = Column(Text, nullable=True)
+    owner = relationship("User", back_populates="uploaded_datasets")
+
+
+class Device(Base):
+    __tablename__ = "devices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    device_identifier = Column(String(100), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    is_revoked = Column(Boolean, nullable=False, default=False)
+    pairing_status = Column(String(30), nullable=False, default="Pairing Pending")
+    battery_id = Column(Integer, ForeignKey("batteries.id"), nullable=True)
+    registered_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    owner = relationship("User", back_populates="devices")
+    paired_battery = relationship("Battery", back_populates="paired_devices")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(100), unique=True, index=True, nullable=False)
+    full_name = Column(String(200), nullable=False)
+    email = Column(String(255), unique=True, index=True, nullable=True)
+    hashed_password = Column(String(255), nullable=False)
+    role = Column(String(20), nullable=False, default="Viewer")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    batteries = relationship("Battery", back_populates="owner", cascade="all, delete-orphan")
+    uploaded_datasets = relationship("UploadedDataset", back_populates="owner", cascade="all, delete-orphan")
+    devices = relationship("Device", back_populates="owner", cascade="all, delete-orphan")
+
+
+class PlatformSetting(Base):
+    __tablename__ = "platform_settings"
+
+    id = Column(Integer, primary_key=True)
+    key = Column(String(100), unique=True, nullable=False, index=True)
+    value_json = Column(Text, nullable=False)

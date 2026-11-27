@@ -6,7 +6,7 @@ from models import Battery, BatteryReading, HealthPrediction, AnomalyRecord, Ale
 from ml_models import ai_engine
 import json
 
-def seed_database(db: Session):
+def seed_database(db: Session, owner_id: int):
     # Check if already seeded
     if db.query(Battery).count() > 0:
         return
@@ -217,7 +217,7 @@ def seed_database(db: Session):
     created_batteries = []
 
     for item in fleet_templates:
-        bat = Battery(**item)
+        bat = Battery(**item, owner_id=owner_id)
         db.add(bat)
         created_batteries.append(bat)
 
@@ -351,6 +351,7 @@ def seed_database(db: Session):
     # Add a recorded dataset entry
     db.add(UploadedDataset(
         filename="ev_fleet_benchmark_telemetry_2026.csv",
+        owner_id=owner_id,
         row_count=560,
         status="Processed",
         uploaded_at=now - timedelta(days=2),

@@ -23,7 +23,7 @@ export default function Alerts({ setActiveTab, setSelectedBatteryId }) {
 
   // New alert form state
   const [newAlert, setNewAlert] = useState({
-    battery_id: 1,
+    battery_id: null,
     alert_type: 'High Temperature Advisory',
     severity: 'Warning',
     message: '',
@@ -39,7 +39,7 @@ export default function Alerts({ setActiveTab, setSelectedBatteryId }) {
       ]);
       setAlerts(alertList);
       setBatteries(batList);
-      if (batList.length > 0 && newAlert.battery_id === 1) {
+      if (batList.length > 0 && (newAlert.battery_id === 1 || newAlert.battery_id === null)) {
         setNewAlert(prev => ({ ...prev, battery_id: batList[0].id }));
       }
     } catch (err) {
@@ -71,7 +71,7 @@ export default function Alerts({ setActiveTab, setSelectedBatteryId }) {
       });
       setShowCreateModal(false);
       setNewAlert({
-        battery_id: batteries[0]?.id || 1,
+        battery_id: batteries[0]?.id || null,
         alert_type: 'High Temperature Advisory',
         severity: 'Warning',
         message: '',
@@ -162,7 +162,7 @@ export default function Alerts({ setActiveTab, setSelectedBatteryId }) {
             </button>
           </div>
 
-          <button onClick={() => setShowCreateModal(true)} className="btn-primary">
+          <button onClick={() => setShowCreateModal(true)} className="btn-primary" disabled={batteries.length === 0}>
             <Plus size={16} /> Create Custom Safety Alert
           </button>
         </div>

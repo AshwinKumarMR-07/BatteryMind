@@ -4,7 +4,7 @@ BatteryMind is an enterprise-grade full-stack platform and AI/ML predictive anal
 
 ---
 
-## 🌟 Platform Capabilities
+##  Platform Capabilities
 
 - **Universal 5-Category Fleet Coverage**:
   1. **Electric Scooters** (e.g. Ather Apex 3.7kWh, Ola S1 Pro, Bajaj Chetak)
@@ -21,7 +21,8 @@ BatteryMind is an enterprise-grade full-stack platform and AI/ML predictive anal
 
 - **Interactive Modern Cyber Dashboard**:
   - Dark navy theme (`#070d1e`) with electric blue and cyan neon accents.
-  - 7 Dedicated Pages: **Dashboard**, **Battery Monitoring**, **Battery Details**, **AI Analysis**, **Alerts**, **Data Upload**, and **Settings**.
+  - Dedicated Pages: **Dashboard**, **Battery Monitoring**, **Device Management**, **Battery Details**, **AI Analysis**, **Alerts**, **Data Upload**, **Settings**, **User Management**, and **My Profile**.
+  - Device Management registers hardware as **Pairing Pending**, lists active non-revoked devices for selection, and pairs them with battery packs.
   - Real-time interactive charts built with **Recharts** (voltage profiles, thermal thresholds, current flows, SOC capacity, and degradation curves).
   - Built-in **Live Telemetry Stream Simulator** to inject real-time telemetry packets for testing.
 
@@ -41,7 +42,7 @@ BatteryMind is an enterprise-grade full-stack platform and AI/ML predictive anal
 
 ## 🗄️ Database Architecture & SQLAlchemy Models
 
-The persistent SQLite database contains 6 relational tables:
+Battery and device telemetry use these 7 primary SQLite tables:
 
 1. `batteries`:
    - `id`, `battery_code` (unique), `vehicle_category`, `model_name`, `manufacturer`, `nominal_capacity_ah`, `nominal_voltage`, `chemistry` (NMC, LFP, NCA, LTO), `cycle_count`, `current_soh`, `status` (Normal, Warning, Critical), `created_at`, `updated_at`.
@@ -55,10 +56,12 @@ The persistent SQLite database contains 6 relational tables:
    - `id`, `battery_id`, `alert_type`, `severity` (Critical, Warning, Info), `message`, `status` (Active, Acknowledged, Resolved), `timestamp`.
 6. `uploaded_datasets`:
    - `id`, `filename`, `row_count`, `status`, `uploaded_at`, `summary_notes`.
+7. `devices`:
+   - `id`, `owner_id`, `device_identifier`, `name`, `is_active`, `is_revoked`, `pairing_status`, `battery_id`, `registered_at`, `updated_at`.
 
 ---
 
-## 🚀 How to Run the Application
+## How to Run the Application
 
 ### Option 1: Unified Full-Stack Server (FastAPI + Built React SPA)
 Run the Python launcher which serves both the REST API and the compiled React production application simultaneously:
@@ -89,10 +92,13 @@ If modifying frontend components with hot-module reload (HMR):
 
 ---
 
-## 📊 REST API Endpoints Overview
+##  REST API Endpoints Overview
 
 - `GET /api/dashboard/stats`: Fleet summary statistics, average SOH, category counts, chemistry mix, and health brackets.
 - `GET /api/batteries`: Retrieve battery packs with optional `category`, `status`, or `search` query parameters.
+- `GET /api/devices`: Retrieve registered devices for the signed-in user.
+- `POST /api/devices`: Register a device with an initial `Pairing Pending` status.
+- `POST /api/devices/{id}/pair` and `POST /api/devices/{id}/revoke`: Pair a device to an owned battery or revoke it.
 - `GET /api/batteries/{id}`: Detailed battery metadata and specs.
 - `POST /api/batteries`: Register a new EV battery pack.
 - `GET /api/batteries/{id}/readings`: Time-series sensor telemetry (voltage, current, temperature, SOC, capacity).

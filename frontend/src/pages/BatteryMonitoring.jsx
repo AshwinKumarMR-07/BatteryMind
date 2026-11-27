@@ -67,7 +67,7 @@ export default function BatteryMonitoring({ setActiveTab, setSelectedBatteryId }
   const handleCreateBattery = async (e) => {
     e.preventDefault();
     try {
-      await api.createBattery({
+      const createdBattery = await api.createBattery({
         ...newBattery,
         nominal_capacity_ah: parseFloat(newBattery.nominal_capacity_ah),
         nominal_voltage: parseFloat(newBattery.nominal_voltage),
@@ -75,6 +75,7 @@ export default function BatteryMonitoring({ setActiveTab, setSelectedBatteryId }
         current_soh: parseFloat(newBattery.current_soh) || 100.0
       });
       setShowAddModal(false);
+      setSelectedBatteryId(createdBattery.id);
       setNewBattery({
         battery_code: '',
         vehicle_category: 'Electric cars',

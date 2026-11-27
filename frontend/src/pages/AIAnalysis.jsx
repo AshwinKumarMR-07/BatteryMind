@@ -53,9 +53,14 @@ export default function AIAnalysis({ selectedBatteryId, setSelectedBatteryId }) 
         setLoading(true);
         const list = await api.getBatteries();
         setBatteries(list);
-        const currentId = selectedBatteryId || (list[0] ? list[0].id : 1);
+        const currentId = list.some((battery) => battery.id === selectedBatteryId)
+          ? selectedBatteryId
+          : list[0]?.id;
         if (currentId) {
+          if (currentId !== selectedBatteryId) setSelectedBatteryId(currentId);
           await runAllAnalyses(currentId);
+        } else {
+          setSelectedBattery(null);
         }
       } catch (err) {
         console.error(err);
@@ -93,6 +98,15 @@ export default function AIAnalysis({ selectedBatteryId, setSelectedBatteryId }) 
     setSelectedBatteryId(id);
     runAllAnalyses(id);
   };
+
+  if (!loading && batteries.length === 0) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--text-muted)' }}>
+        <h3 style={{ color: '#f1f5f9', marginBottom: '8px' }}>AI analysis is ready when you are</h3>
+        <p>Register a battery pack to see its SOH estimate, anomaly analysis, forecast, and explainability results.</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>

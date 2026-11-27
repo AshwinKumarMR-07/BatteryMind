@@ -40,9 +40,15 @@ export default function BatteryDetails({ selectedBatteryId, setSelectedBatteryId
         setLoading(true);
         const allBats = await api.getBatteries();
         setBatteries(allBats);
-        const currentId = selectedBatteryId || (allBats[0] ? allBats[0].id : 1);
+        const currentId = allBats.some((battery) => battery.id === selectedBatteryId)
+          ? selectedBatteryId
+          : allBats[0]?.id;
         if (currentId) {
+          if (currentId !== selectedBatteryId) setSelectedBatteryId(currentId);
           await loadBatteryData(currentId);
+        } else {
+          setSelectedBattery(null);
+          setReadings([]);
         }
       } catch (err) {
         console.error('Failed to load battery details:', err);
@@ -85,6 +91,18 @@ export default function BatteryDetails({ selectedBatteryId, setSelectedBatteryId
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', gap: '12px', color: '#00f2fe' }}>
         <RefreshCw size={24} className="spin" style={{ animation: 'spin 1s linear infinite' }} />
         <span>Loading Battery Diagnostics...</span>
+      </div>
+    );
+  }
+
+  if (!loading && batteries.length === 0) {
+    return (
+      <div className="glass-card" style={{ textAlign: 'center', padding: '56px 20px', color: 'var(--text-muted)' }}>
+        <h3 style={{ color: '#f1f5f9', marginBottom: '8px' }}>No battery packs yet</h3>
+        <p>Register a battery pack in Battery Monitoring to view its details and telemetry.</p>
+        <button className="btn-primary" style={{ marginTop: '16px' }} onClick={() => setActiveTab('monitoring')}>
+          Go to Battery Monitoring
+        </button>
       </div>
     );
   }

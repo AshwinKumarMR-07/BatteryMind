@@ -83,6 +83,7 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
     range,
     count
   })) : [];
+  const hasBatteries = (stats?.total_batteries ?? 0) > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '26px' }}>
@@ -94,7 +95,7 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
             <div>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Total Monitored Packs</p>
               <h2 style={{ fontSize: '32px', fontWeight: 800, marginTop: '4px', letterSpacing: '-0.5px' }}>
-                {stats?.total_batteries || 0}
+                {stats?.total_batteries ?? 0}
               </h2>
             </div>
             <div style={{ 
@@ -117,7 +118,7 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
             <div>
               <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>Fleet Average SOH</p>
               <h2 style={{ fontSize: '32px', fontWeight: 800, marginTop: '4px', color: '#10b981', letterSpacing: '-0.5px' }}>
-                {stats?.average_soh || 0}%
+                {hasBatteries ? `${stats.average_soh}%` : '--'}
               </h2>
             </div>
             <div style={{ 
@@ -193,6 +194,11 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
             <span className="badge badge-cyan">5 Categories</span>
           </div>
           <div style={{ height: '240px', width: '100%' }}>
+            {!hasBatteries ? (
+              <div style={{ height: '100%', display: 'grid', placeItems: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                No battery data yet. Register a battery pack to see fleet statistics.
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData} margin={{ top: 10, right: 10, left: -20, bottom: 20 }}>
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} interval={0} angle={-15} textAnchor="end" />
@@ -208,6 +214,7 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -220,47 +227,54 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
             </div>
             <span className="badge badge-normal">Health Index</span>
           </div>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center', height: '240px' }}>
-            <div style={{ flex: 1, height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={healthDistData} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
-                  <XAxis type="number" stroke="#64748b" fontSize={11} />
-                  <YAxis type="category" dataKey="range" stroke="#94a3b8" fontSize={12} width={70} />
-                  <Tooltip contentStyle={{ background: '#0b1329', border: '1px solid #10b981', borderRadius: '8px' }} />
-                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
-                    <Cell fill="#10b981" />
-                    <Cell fill="#00f2fe" />
-                    <Cell fill="#f59e0b" />
-                    <Cell fill="#ef4444" />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <div style={{ height: '240px', display: 'flex', alignItems: 'center' }}>
+              {!hasBatteries ? (
+                <div style={{ width: '100%', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
+                  SOH and chemistry charts will appear after you add batteries.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center', height: '100%', width: '100%' }}>
+                  <div style={{ flex: 1, height: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={healthDistData} layout="vertical" margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+                        <XAxis type="number" stroke="#64748b" fontSize={11} />
+                        <YAxis type="category" dataKey="range" stroke="#94a3b8" fontSize={12} width={70} />
+                        <Tooltip contentStyle={{ background: '#0b1329', border: '1px solid #10b981', borderRadius: '8px' }} />
+                        <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                          <Cell fill="#10b981" />
+                          <Cell fill="#00f2fe" />
+                          <Cell fill="#f59e0b" />
+                          <Cell fill="#ef4444" />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
 
-            {/* Chemistry side donut */}
-            <div style={{ width: '130px', textAlign: 'center' }}>
-              <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Chemistry Mix</p>
-              <div style={{ height: '120px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={chemistryData} dataKey="value" nameKey="name" innerRadius={28} outerRadius={46} paddingAngle={4}>
-                      {chemistryData.map((entry, index) => (
-                        <Cell key={`chem-${index}`} fill={CHEM_COLORS[index % CHEM_COLORS.length]} />
+                  <div style={{ width: '130px', textAlign: 'center' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '4px' }}>Chemistry Mix</p>
+                    <div style={{ height: '120px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie data={chemistryData} dataKey="value" nameKey="name" innerRadius={28} outerRadius={46} paddingAngle={4}>
+                            {chemistryData.map((entry, index) => (
+                              <Cell key={`chem-${index}`} fill={CHEM_COLORS[index % CHEM_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip contentStyle={{ background: '#0b1329', border: '1px solid #38bdf8', borderRadius: '8px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center', marginTop: '6px' }}>
+                      {chemistryData.map((c, i) => (
+                        <span key={c.name} style={{ fontSize: '10px', color: CHEM_COLORS[i % CHEM_COLORS.length] }}>
+                          {c.name}: {c.value}
+                        </span>
                       ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: '#0b1329', border: '1px solid #38bdf8', borderRadius: '8px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center', marginTop: '6px' }}>
-                {chemistryData.map((c, i) => (
-                  <span key={c.name} style={{ fontSize: '10px', color: CHEM_COLORS[i % CHEM_COLORS.length] }}>
-                    {c.name}: {c.value}
-                  </span>
-                ))}
-              </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
         </div>
       </div>
 
@@ -336,7 +350,11 @@ export default function Dashboard({ setActiveTab, setSelectedBatteryId }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {recentBatteries.map(battery => (
+            {recentBatteries.length === 0 ? (
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                No battery packs registered yet. Use Battery Monitoring to add your first pack.
+              </p>
+            ) : recentBatteries.map(battery => (
               <div 
                 key={battery.id}
                 onClick={() => {

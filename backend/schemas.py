@@ -25,6 +25,31 @@ class BatteryResponse(BatteryBase):
     class Config:
         from_attributes = True
 
+
+class DeviceCreate(BaseModel):
+    device_identifier: str = Field(min_length=1, max_length=100)
+    name: str = Field(min_length=1, max_length=100)
+
+
+class DevicePairRequest(BaseModel):
+    battery_id: int = Field(gt=0)
+
+
+class DeviceResponse(BaseModel):
+    id: int
+    device_identifier: str
+    name: str
+    is_active: bool
+    is_revoked: bool
+    pairing_status: str
+    battery_id: Optional[int] = None
+    registered_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class ReadingBase(BaseModel):
     voltage: float
     current: float
@@ -139,3 +164,61 @@ class XAIExplanation(BaseModel):
     factors: List[Dict[str, Any]]
     recommendations: List[str]
     summary: str
+
+
+class LoginRequest(BaseModel):
+    username: str = Field(min_length=3, max_length=100)
+    password: str = Field(min_length=8, max_length=255)
+
+
+class RegistrationRequest(BaseModel):
+    full_name: str = Field(min_length=2, max_length=200)
+    username: str = Field(min_length=3, max_length=100)
+    email: str = Field(min_length=5, max_length=255)
+    password: str = Field(min_length=8, max_length=72)
+    confirm_password: str = Field(min_length=8, max_length=72)
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    full_name: str
+    email: Optional[str] = None
+    role: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=100)
+    full_name: str = Field(min_length=2, max_length=200)
+    email: Optional[str] = Field(default=None, min_length=5, max_length=255)
+    password: str = Field(min_length=8, max_length=255)
+    role: str = Field(pattern="^(Admin|Operator|Viewer)$")
+
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    email: Optional[str] = Field(default=None, min_length=5, max_length=255)
+    role: Optional[str] = Field(default=None, pattern="^(Admin|Operator|Viewer)$")
+    is_active: Optional[bool] = None
+
+
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    email: Optional[str] = Field(default=None, min_length=5, max_length=255)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(min_length=8, max_length=72)
+    new_password: str = Field(min_length=8, max_length=72)
+    confirm_new_password: str = Field(min_length=8, max_length=72)

@@ -63,6 +63,7 @@ export default function Settings() {
     }
   };
 
+
   if (loading && !settings) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', gap: '12px', color: '#00f2fe' }}>
@@ -272,6 +273,7 @@ export default function Settings() {
           </div>
         </form>
       </div>
+
     </div>
   );
 }
